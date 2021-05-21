@@ -10,7 +10,7 @@ public class Customer {
     private int id;
     @Column(name = "username")
     private String name;
-    @Column(name = "email")
+    @Column(name = "email", unique = true)
     private String email;
     @Column(name = "address")
     private String address;

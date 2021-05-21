@@ -3,12 +3,12 @@ package com.example.customermanager3.service;
 import com.example.customermanager3.model.Customer;
 import com.example.customermanager3.model.CustomerRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.dao.DataIntegrityViolationException;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 public class CustomerServiceImplement implements CustomerService {
@@ -25,14 +25,19 @@ public class CustomerServiceImplement implements CustomerService {
 //    }
     @Autowired
     CustomerRepository repo;
+
     @Override
     public List<Customer> findAll() {
         return repo.findAll();
     }
 
     @Override
-    public void save(Customer customer) {
-
+    public Customer save(Customer customer)  throws DuplicateEmailException{
+        try {
+            return repo.save(customer);
+        } catch (DataIntegrityViolationException e) {
+            throw new DuplicateEmailException();
+        }
     }
 
     @Override
@@ -45,9 +50,25 @@ public class CustomerServiceImplement implements CustomerService {
 
     }
 
+
     @Override
     public void remove(int id) {
 
+    }
+
+    @Override
+    public Page<Customer> findAll(Pageable pageable) throws Exception {
+        if (true) throw new Exception("a dummy exception");
+        return null;
+    }
+
+    @Override
+    public Optional<Customer> findOne(int id) throws Exception {
+        Optional<Customer> customerOptional = repo.findById(id);
+        if (!customerOptional.isPresent()) {
+            throw new Exception("customer not found!");
+        }
+        return customerOptional;
     }
 
 //    @Override

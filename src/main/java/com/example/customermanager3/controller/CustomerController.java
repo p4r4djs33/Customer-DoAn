@@ -4,14 +4,19 @@ package com.example.customermanager3.controller;
 import com.example.customermanager3.model.Customer;
 import com.example.customermanager3.service.CustomerService;
 import com.example.customermanager3.service.CustomerServiceImplement;
+import com.example.customermanager3.service.DuplicateEmailException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.Banner;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.servlet.ModelAndView;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.Optional;
 
 @Controller
 public class CustomerController {
@@ -30,12 +35,17 @@ public class CustomerController {
         return "create";
     }
     @PostMapping("/customer/save")
-    public String save(Customer customer, RedirectAttributes redirectAttributes) {
-        customer.setId((int) (Math.random() * 10000));
-        customerService.save(customer);
-        redirectAttributes.addFlashAttribute("success","Saved customer successfully!");
-        return "redirect:/";
+    public ModelAndView save(Customer customer) throws DuplicateEmailException {
+            ModelAndView modelAndView = new ModelAndView("index");
+            customerService.save(customer);
+            modelAndView.addObject("success", "Saved customer successfully!");
+            return modelAndView;
     }
+    @ExceptionHandler(DuplicateEmailException.class)
+    public ModelAndView showInputNotAcceptable() {
+        return new ModelAndView("/inputs-not-acceptable");
+    }
+
 
     //-----------EDIT CUSTOMER
     @GetMapping("/customer/{id}/edit")
@@ -62,8 +72,14 @@ public class CustomerController {
         return "redirect:/";
     }
     @GetMapping("/customer/{id}/view")
-    public String view(@PathVariable int id, Model model) {
-        model.addAttribute("customer", customerService.findById(id));
-        return "view";
+    public ModelAndView showInformation(@PathVariable int id) {
+        try {
+            ModelAndView modelAndView = new ModelAndView("/view");
+            Optional<Customer> customer = customerService.findOne(id);
+            modelAndView.addObject("customer", customer.get());
+            return modelAndView;
+        } catch (Exception e) {
+            return new ModelAndView("redirect:/");
+        }
     }
 }
